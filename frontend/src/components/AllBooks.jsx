@@ -31,8 +31,9 @@ const AllBooks = () => {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         });
-        setBooks(response.data.books);
-        setFilteredBooks(response.data.books); // Initialize filteredBooks with all books
+        console.log(JSON.stringify(response));
+        setBooks(response.books);
+        setFilteredBooks(response.books); // Initialize filteredBooks with all books
       } catch (error) {
         console.error('Error fetching books:', error);
       } finally {

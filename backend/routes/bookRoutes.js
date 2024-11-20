@@ -16,7 +16,7 @@ const router = express.Router();
 // Routes
 router.post("/add/:user", authMiddleware, addBook); // Add a new book (requires auth)
 router.get("/getall", getBooks); // Get all books
-router.put("/edit/:id", authMiddleware, editBook); // Edit a book (requires auth)
+router.put("/update/:id", authMiddleware, editBook); // Edit a book (requires auth)
 router.delete("/delete/:id", authMiddleware, deleteBook); // Delete a book (requires auth)
 router.get("/getbyuser/:id", authMiddleware, getBooksByUser); // Get books by user (requires auth)
 router.get("/search", searchBooks); // Search for books

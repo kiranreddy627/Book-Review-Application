@@ -1,17 +1,16 @@
 import axios from "axios";
-
 class ApiService {
   constructor() {
-    const REACT_APP_BACKEND_URL = "https://my-repository-vm9k.vercel.app/";
+    const REACT_APP_BACKEND_URL = "http://3.19.1.68:5000"
     this.api = axios.create({
-      baseURL: REACT_APP_BACKEND_URL || "http://localhost:5000", // Replace with your actual API base URL
+      baseURL:"http://localhost:5000", // Replace with your actual API base URL
       headers: {
         "Content-Type": "application/json",
       },
     });
 
     // Attach token if available
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    const token = localStorage.getItem("token") || (sessionStorage.getItem("token"));
     if (token) {
       this.api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
@@ -31,7 +30,7 @@ class ApiService {
   setAuthToken(token) {
     if (token) {
       this.api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      localStorage.setItem("token", token); // Store as raw string
+      localStorage.setItem("token", JSON.stringify(token));
     } else {
       delete this.api.defaults.headers.common["Authorization"];
       localStorage.removeItem("token");
@@ -48,16 +47,17 @@ class ApiService {
     }
   }
 
-  // Generic POST request
-  async post(url, data) {
-    try {
-      const response = await this.api.post(url, data);
-      return response.data;
-    } catch (error) {
-      console.error("API call failed:", error);
-      throw error;
-    }
+  // Generic POST request// ApiService.js
+async post(url, data) {
+  try {
+    const response = await this.api.post(url, data);
+    return response; // Return the entire response data
+  } catch (error) {
+    // Optionally log error or handle specific error scenarios
+    console.error("API call failed:", error);
+    throw error; // Rethrow the error for further handling
   }
+}
 
   // Generic PUT request
   async put(url, data) {

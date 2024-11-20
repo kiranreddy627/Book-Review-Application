@@ -47,6 +47,7 @@ const Login = () => {
     }
 
     try {
+      console.log("before");
       const response = await service.post('/auth/login', { email, password });
       setLoading(false);
 

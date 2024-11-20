@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import {
   Dialog,
   DialogTitle,
@@ -37,6 +36,7 @@ const MyBooks = () => {
     coverImage: "",
   });
   const [editingBookId, setEditingBookId] = useState(null);
+
   const service = new ApiService();
 
   useEffect(() => {
@@ -50,10 +50,10 @@ const MyBooks = () => {
       setFilteredBooks(
         books.filter(
           (book) =>
-            book.title.toLowerCase().includes(lowercasedQuery) ||
-            book.author.toLowerCase().includes(lowercasedQuery) ||
-            book.genre.toLowerCase().includes(lowercasedQuery) ||
-            book.ISBN.toLowerCase().includes(lowercasedQuery)
+            book?.title?.toLowerCase().includes(lowercasedQuery) ||
+            book?.author?.toLowerCase().includes(lowercasedQuery) ||
+            book?.genre?.toLowerCase().includes(lowercasedQuery) ||
+            book?.ISBN?.toLowerCase().includes(lowercasedQuery)
         )
       );
     } else {
@@ -65,13 +65,11 @@ const MyBooks = () => {
   const fetchBooks = async () => {
     try {
       setLoading(true);
-      const response = await service.get(`/books/getbyuser/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      setBooks(response.data.books || []); // Extract the 'books' array from the response
-      setFilteredBooks(response.data.books || []); // Initialize filteredBooks with all books
+      const response = await service.get(`/books/getbyuser/${userId}`);
+      console.log("Fetched Books Response:", response);
+      const booksData = response.books || response.data?.books || [];
+      setBooks(booksData);
+      setFilteredBooks(booksData);
     } catch (error) {
       console.error("Error fetching books:", error);
     } finally {
@@ -84,11 +82,11 @@ const MyBooks = () => {
       setIsEditing(true);
       setEditingBookId(book._id);
       setBookData({
-        title: book.title || "",
-        author: book.author || "",
-        ISBN: book.ISBN || "",
-        genre: book.genre || "",
-        coverImage: book.coverImage || "",
+        title: book?.title || "",
+        author: book?.author || "",
+        ISBN: book?.ISBN || "",
+        genre: book?.genre || "",
+        coverImage: book?.coverImage || "",
       });
     } else {
       setIsEditing(false);
@@ -123,21 +121,16 @@ const MyBooks = () => {
     try {
       if (isEditing) {
         // Update existing book
-        const response = await service.put(
-          `/books/update/${editingBookId}`,
-          bookData
-        );
+        const response = await service.put(`/books/update/${editingBookId}`, bookData);
+        const updatedBook = response.data?.book || response.book || response.data?.data?.book;
         setBooks((prevBooks) =>
-          prevBooks.map((book) => (book._id === editingBookId ? response.data.book : book))
+          prevBooks.map((book) => (book._id === editingBookId ? updatedBook : book))
         );
       } else {
         // Add a new book
-        const response = await service.post(`/books/add/${userId}`, bookData, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setBooks((prevBooks) => [...prevBooks, response.data.book]);
+        const response = await service.post(`/books/add/${userId}`, bookData);
+        const newBook = response.data?.book || response.book || response.data?.data?.book;
+        setBooks((prevBooks) => [...prevBooks, newBook]);
       }
       handleCloseDialog();
     } catch (error) {
@@ -147,11 +140,7 @@ const MyBooks = () => {
 
   const handleDeleteBook = async (id) => {
     try {
-      await service.delete(`/books/delete/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      await service.delete(`/books/delete/${id}`);
       setBooks((prevBooks) => prevBooks.filter((book) => book._id !== id));
     } catch (error) {
       console.error("Error deleting book:", error);
@@ -165,7 +154,7 @@ const MyBooks = () => {
 
   return (
     <Box>
-      <Navbar username={username} onLogout={handleLogout} /> {/* Pass props to Navbar */}
+      <Navbar username={username} onLogout={handleLogout} />
       <Box sx={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
         <Typography variant="h3" align="center" gutterBottom>
           My Books
@@ -204,7 +193,7 @@ const MyBooks = () => {
           >
             {filteredBooks.map((book) => (
               <Card
-                key={book._id}
+                key={book?._id}
                 sx={{
                   width: "90%",
                   maxWidth: "800px",
@@ -218,29 +207,29 @@ const MyBooks = () => {
               >
                 <CardContent>
                   <Typography variant="h5" component="div" gutterBottom>
-                    {book.title}
+                    {book?.title || "Untitled"}
                   </Typography>
                   <Typography variant="body1" gutterBottom>
-                    <strong>Author:</strong> {book.author}
+                    <strong>Author:</strong> {book?.author || "Unknown"}
                   </Typography>
                   <Typography variant="body1" gutterBottom>
-                    <strong>Genre:</strong> {book.genre}
+                    <strong>Genre:</strong> {book?.genre || "N/A"}
                   </Typography>
                   <Typography variant="body1" gutterBottom>
-                    <strong>ISBN:</strong> {book.ISBN}
+                    <strong>ISBN:</strong> {book?.ISBN || "N/A"}
                   </Typography>
                   <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
                     <Typography variant="body1" sx={{ mr: 2 }}>
                       <strong>Rating:</strong>
                     </Typography>
-                    <Rating name={`rating-${book._id}`} value={book.averageRating} readOnly />
+                    <Rating name={`rating-${book?._id}`} value={book?.averageRating || 0} readOnly />
                   </Box>
                 </CardContent>
                 <CardActions sx={{ justifyContent: "flex-end" }}>
                   <Button size="small" onClick={() => handleOpenDialog(book)}>
                     Edit
                   </Button>
-                  <Button size="small" color="error" onClick={() => handleDeleteBook(book._id)}>
+                  <Button size="small" color="error" onClick={() => handleDeleteBook(book?._id)}>
                     Delete
                   </Button>
                 </CardActions>
