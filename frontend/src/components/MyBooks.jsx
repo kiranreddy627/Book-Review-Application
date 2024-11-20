@@ -24,9 +24,11 @@ const MyBooks = () => {
   const username = user?.name || "Guest"; // Extract username or default to "Guest"
 
   const [books, setBooks] = useState([]); // Initialize books as an empty array
+  const [filteredBooks, setFilteredBooks] = useState([]); // For search functionality
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true); // Loading state
+  const [searchQuery, setSearchQuery] = useState(""); // For search functionality
   const [bookData, setBookData] = useState({
     title: "",
     author: "",
@@ -41,18 +43,35 @@ const MyBooks = () => {
     fetchBooks();
   }, []);
 
+  useEffect(() => {
+    // Filter books based on search query
+    if (searchQuery) {
+      const lowercasedQuery = searchQuery.toLowerCase();
+      setFilteredBooks(
+        books.filter(
+          (book) =>
+            book.title.toLowerCase().includes(lowercasedQuery) ||
+            book.author.toLowerCase().includes(lowercasedQuery) ||
+            book.genre.toLowerCase().includes(lowercasedQuery) ||
+            book.ISBN.toLowerCase().includes(lowercasedQuery)
+        )
+      );
+    } else {
+      setFilteredBooks(books); // Reset to all books if query is empty
+    }
+  }, [searchQuery, books]);
+
   // Fetch books from backend
   const fetchBooks = async () => {
     try {
       setLoading(true);
-      console.log("Fetching books...");
       const response = await service.get(`/books/getbyuser/${userId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-      console.log("Fetched books:", response.data);
       setBooks(response.data.books || []); // Extract the 'books' array from the response
+      setFilteredBooks(response.data.books || []); // Initialize filteredBooks with all books
     } catch (error) {
       console.error("Error fetching books:", error);
     } finally {
@@ -151,6 +170,16 @@ const MyBooks = () => {
         <Typography variant="h3" align="center" gutterBottom>
           My Books
         </Typography>
+
+        {/* Search Bar */}
+        <TextField
+          fullWidth
+          margin="normal"
+          placeholder="Search by title, author, genre, or ISBN"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+
         <Button
           variant="contained"
           color="primary"
@@ -159,11 +188,12 @@ const MyBooks = () => {
         >
           Add New Book
         </Button>
+
         {loading ? (
           <Box sx={{ textAlign: "center", mt: 4 }}>
             <CircularProgress />
           </Box>
-        ) : Array.isArray(books) && books.length > 0 ? (
+        ) : filteredBooks.length > 0 ? (
           <Box
             sx={{
               display: "flex",
@@ -172,7 +202,7 @@ const MyBooks = () => {
               alignItems: "center",
             }}
           >
-            {books.map((book) => (
+            {filteredBooks.map((book) => (
               <Card
                 key={book._id}
                 sx={{
