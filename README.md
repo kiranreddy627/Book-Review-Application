@@ -2,7 +2,7 @@
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/kiranreddy627/Dealsdray.git
+   git clone https://github.com/kiranreddy627/Book-Review-Application.git
 
 2. Install dependencies for the frontend and backend:
 
