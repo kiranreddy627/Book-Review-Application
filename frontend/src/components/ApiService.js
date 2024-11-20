@@ -2,7 +2,7 @@ import axios from "axios";
 
 class ApiService {
   constructor() {
-    const REACT_APP_BACKEND_URL = "https://my-repository-vm9k.vercel.app/";
+    const REACT_APP_BACKEND_URL = "https://bms-i6d2.vercel.app/";
     this.api = axios.create({
       baseURL: REACT_APP_BACKEND_URL || "http://localhost:5000", // Replace with your actual API base URL
       headers: {
