@@ -3,7 +3,7 @@ class ApiService {
   constructor() {
     const REACT_APP_BACKEND_URL = "http://3.19.1.68:5000"
     this.api = axios.create({
-      baseURL:"https://bms-server-five.vercel.app/" || "http://localhost:5000", // Replace with your actual API base URL
+      baseURL:"http://localhost:5000", // Replace with your actual API base URL
       headers: {
         "Content-Type": "application/json",
       },
