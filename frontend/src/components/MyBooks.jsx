@@ -16,6 +16,7 @@ import {
   Rating,
 } from "@mui/material";
 import Navbar from "./Navbar"; // Import the Navbar component
+import ApiService from "./ApiService";
 
 const MyBooks = () => {
   const user = JSON.parse(localStorage.getItem("user")); // Get user object from localStorage
@@ -34,6 +35,7 @@ const MyBooks = () => {
     coverImage: "",
   });
   const [editingBookId, setEditingBookId] = useState(null);
+  const service = new ApiService();
 
   useEffect(() => {
     fetchBooks();
@@ -44,7 +46,7 @@ const MyBooks = () => {
     try {
       setLoading(true);
       console.log("Fetching books...");
-      const response = await axios.get(`http://localhost:5000/books/getbyuser/${userId}`, {
+      const response = await service.get(`/books/getbyuser/${userId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -102,8 +104,8 @@ const MyBooks = () => {
     try {
       if (isEditing) {
         // Update existing book
-        const response = await axios.put(
-          `http://localhost:5000/books/update/${editingBookId}`,
+        const response = await service.put(
+          `/books/update/${editingBookId}`,
           bookData
         );
         setBooks((prevBooks) =>
@@ -111,7 +113,7 @@ const MyBooks = () => {
         );
       } else {
         // Add a new book
-        const response = await axios.post(`http://localhost:5000/books/add/${userId}`, bookData, {
+        const response = await service.post(`/books/add/${userId}`, bookData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -126,7 +128,7 @@ const MyBooks = () => {
 
   const handleDeleteBook = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/books/delete/${id}`, {
+      await service.delete(`/books/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },

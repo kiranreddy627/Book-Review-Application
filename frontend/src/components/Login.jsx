@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
+import ApiService from './ApiService';
 
 const theme = createTheme({
   palette: {
@@ -31,6 +32,7 @@ const Login = () => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate(); // Use navigate hook
+  const service = new ApiService();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,7 +47,7 @@ const Login = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/auth/login', { email, password });
+      const response = await service.post('/auth/login', { email, password });
       setLoading(false);
 
       if (response.data) {

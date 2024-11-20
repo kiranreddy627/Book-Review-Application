@@ -9,24 +9,30 @@ import {
   Grid,
   CircularProgress,
   Rating,
+  TextField,
 } from '@mui/material';
 import Navbar from './Navbar'; // Import the Navbar component
+import ApiService from './ApiService';
 
 const AllBooks = () => {
   const [books, setBooks] = useState([]);
+  const [filteredBooks, setFilteredBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const service = new ApiService();
 
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/books/getall', {
+        const response = await service.get('/books/getall', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         });
         setBooks(response.data.books);
+        setFilteredBooks(response.data.books); // Initialize filteredBooks with all books
       } catch (error) {
         console.error('Error fetching books:', error);
       } finally {
@@ -55,8 +61,8 @@ const AllBooks = () => {
 
   const handleRatingChange = async (bookId, newRating) => {
     try {
-      const response = await axios.put(
-        `http://localhost:5000/books/rate/${bookId}`,
+      const response = await service.put(
+        `/books/rate/${bookId}`,
         {
           rating: newRating,
           userId: userId,
@@ -68,15 +74,34 @@ const AllBooks = () => {
         }
       );
 
-      // Dynamically update the book's average rating and user's rating in the state
+      // Update the book's state immediately to reflect the changes
       setBooks((prevBooks) =>
         prevBooks.map((book) => {
           if (book._id === bookId) {
-            // Update the ratings array and average rating for the book
             const updatedRatings = [
               ...book.ratings.filter((r) => r.user !== userId),
               { user: userId, rating: newRating },
             ];
+
+            return {
+              ...book,
+              ratings: updatedRatings,
+              averageRating: response.data.averageRating, // Assuming backend sends updated averageRating
+            };
+          }
+          return book;
+        })
+      );
+
+      // Also update the filteredBooks array if search is active
+      setFilteredBooks((prevFilteredBooks) =>
+        prevFilteredBooks.map((book) => {
+          if (book._id === bookId) {
+            const updatedRatings = [
+              ...book.ratings.filter((r) => r.user !== userId),
+              { user: userId, rating: newRating },
+            ];
+
             return {
               ...book,
               ratings: updatedRatings,
@@ -91,6 +116,22 @@ const AllBooks = () => {
     }
   };
 
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    const lowercasedQuery = query.toLowerCase();
+
+    // Filter books based on title, author, genre, or ISBN
+    const filtered = books.filter(
+      (book) =>
+        book.title.toLowerCase().includes(lowercasedQuery) ||
+        book.author.toLowerCase().includes(lowercasedQuery) ||
+        book.genre.toLowerCase().includes(lowercasedQuery) ||
+        book.ISBN.toLowerCase().includes(lowercasedQuery)
+    );
+
+    setFilteredBooks(filtered);
+  };
+
   return (
     <Box>
       {/* Navbar with the username and logout functionality */}
@@ -100,13 +141,26 @@ const AllBooks = () => {
         <Typography variant="h4" gutterBottom sx={{ mt: 3, textAlign: 'center' }}>
           All Books
         </Typography>
+
+        {/* Search Bar */}
+        <Box sx={{ my: 3, textAlign: 'center' }}>
+          <TextField
+            label="Search Books"
+            variant="outlined"
+            fullWidth
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Search by title, author, genre, or ISBN"
+          />
+        </Box>
+
         <Grid container spacing={3} justifyContent="center">
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mt: 2 }}>
               <CircularProgress />
             </Box>
           ) : (
-            books.map((book) => {
+            filteredBooks.map((book) => {
               // Check if the user has already rated this book
               const userRating =
                 book.ratings?.find((r) => r.user === userId)?.rating || 0;
@@ -151,7 +205,9 @@ const AllBooks = () => {
                           readOnly
                         />
                         <Typography variant="body1" sx={{ ml: 1 }}>
-                          {book.averageRating ? `${book.averageRating.toFixed(1)} / 5` : 'No Ratings'}
+                          {book.averageRating
+                            ? `${book.averageRating.toFixed(1)} / 5`
+                            : 'No Ratings'}
                         </Typography>
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', mt: 3 }}>
