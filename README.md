@@ -34,3 +34,4 @@ Backend:
     npm start
 
 5. Open the application in your browser at http://localhost:3000 (Frontend) and http://localhost:5000 (Backend).
+   
